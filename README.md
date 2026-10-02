@@ -1,16 +1,104 @@
-# ClinPGx VIP gene / allele extraction pipeline
+# ClinPGx VIP Gene / Allele Review Pipeline — Template Version 1
 
-Python pipeline used to assemble an April 2026 pharmacogenomics allele overview from **ClinPGx** named-allele/haplotype pages, downloaded ClinPGx clinical-annotation TSVs, and **CPIC** allele-functionality reference tables.
+This repository contains **Template Version 1** of the Python workflow used to build the ClinPGx/CPIC pharmacogenomics allele review workbook used in this project.
 
-The repository preserves the original five-step workflow while cleaning duplicated configuration, brittle column handling, merge keys, and previously hidden manual curation.
+The workflow brings together three types of information:
 
-## Pipeline
+- **ClinPGx named-allele and haplotype information**
+- **ClinPGx clinical annotations**, separated into pediatric and non-pediatric evidence
+- **CPIC allele-functionality reference information**
 
-1. **ClinPGx named-allele table** — scrape the configured ClinPGx gene haplotype pages.
-2. **Haplotype details** — add ClinPGx haplotype IDs, HGVS representation, definition, and available CPIC/DPWG detail fields.
-3. **Clinical annotations** — combine pediatric and non-pediatric ClinPGx TSV exports by evidence level.
-4. **Merge** — outer-join the named-allele/haplotype table with clinical annotations on `Gene + Variant`.
-5. **Allele overview** — add CPIC allele-functionality fields and optional project curation; write `All VIP genes`, `Filtered alleles`, and `Legend` sheets.
+The resulting Excel workbook is designed to support review and selection of pharmacogenomic alleles for a VIP-gene panel.
+
+## Template Version 1 workflow
+
+The workflow is organized into five sequential scripts:
+
+1. **Gene-level ClinPGx extraction**  
+   Extracts named alleles, named variants, ClinPGx/CPIC function fields, AMP tier information, and gene-level named-allele descriptions from configured ClinPGx gene pages.
+
+2. **Haplotype-level ClinPGx extraction**  
+   Adds haplotype identifiers and detailed haplotype information, including HGVS representation, CPIC and DPWG function/activity fields, and ClinPGx definitions.
+
+3. **ClinPGx clinical annotation compilation**  
+   Combines downloaded ClinPGx pediatric and non-pediatric clinical-annotation TSV files. Clinical annotations are organized by ClinPGx evidence level (1, 2, 3, 4, or unknown).
+
+4. **ClinPGx table integration**  
+   Combines the named-allele/haplotype information with the clinical-annotation table using `Gene + Variant` as the shared key.
+
+5. **CPIC integration and workbook generation**  
+   Adds CPIC allele-functionality information and writes the final Excel workbook used for allele review.
+
+## Final workbook
+
+Template Version 1 produces an Excel workbook with three worksheets.
+
+### 1. All VIP genes
+
+This is the comprehensive allele/variant review table.
+
+The worksheet includes:
+
+**Allele identification and project review**
+- Gene
+- Variant
+- Allele number
+- Previously validated
+- Included in custom Veridose panel
+- AMP Tier
+
+**ClinPGx and CPIC function information**
+- CPIC Function
+- ClinPGx Function
+- Allele
+- Activity Score
+- Allele Function
+- CPIC Strength of Evidence
+- References
+- Summary
+
+**ClinPGx named-allele / haplotype information**
+- Named Alleles Description
+- Named Variants
+- Haplotype ID
+- HGVS Representation
+- DPWG Function Assignment
+- DPWG Activity Value
+- Definition
+
+**ClinPGx clinical annotations**
+- Pediatric ClinPGx Level of Evidence (1)
+- Pediatric ClinPGx Level of Evidence (2)
+- Pediatric ClinPGx Level of Evidence (3)
+- Pediatric ClinPGx Level of Evidence (4)
+- Pediatric ClinPGx Level of Evidence (Unknown)
+- Non-Pediatric ClinPGx Level of Evidence (1)
+- Non-Pediatric ClinPGx Level of Evidence (2)
+- Non-Pediatric ClinPGx Level of Evidence (3)
+- Non-Pediatric ClinPGx Level of Evidence (4)
+- Non-Pediatric ClinPGx Level of Evidence (Unknown)
+
+### 2. Filtered alleles
+
+This worksheet contains the selected allele subset used for focused panel review.
+
+It retains the same ClinPGx/CPIC evidence structure as the full worksheet and includes project-review fields such as:
+
+- Previously validated
+- DNALabs Orthogonal Panel
+- CPIC / ClinPGx functional information
+- Haplotype and HGVS information
+- Pediatric and non-pediatric ClinPGx evidence
+
+### 3. Legend
+
+The Legend sheet documents the worksheet highlighting categories used during allele review:
+
+- Data extracted directly from the ClinPGx named-alleles table
+- Data extracted from the CPIC Allele Functionality Table
+- Already included in validation
+- Candidate allele
+- Must-include allele: strong or definitive evidence allele not previously included for validation
 
 ## Repository structure
 
@@ -30,12 +118,13 @@ The repository preserves the original five-step workflow while cleaning duplicat
 │   ├── clinical_annotations/
 │   └── curation/
 ├── outputs/
-└── docs/VALIDATION_NOTES.md
+└── docs/
+    └── TEMPLATE_VERSION_1.md
 ```
 
 ## Setup
 
-Python 3.10+ is recommended. Google Chrome/Chromium is required for the Selenium steps.
+Python 3.10+ is recommended. Google Chrome/Chromium is required for the Selenium-based ClinPGx extraction steps.
 
 ```bash
 python -m venv .venv
@@ -43,54 +132,68 @@ source .venv/bin/activate        # Windows: .venv\\Scripts\\activate
 pip install -r requirements.txt
 ```
 
-Recent Selenium versions use Selenium Manager to locate/install a compatible driver in standard environments.
+## ClinPGx clinical-annotation inputs
 
-## Required Step-3 input files
+Place the downloaded ClinPGx clinical-annotation TSV files in:
 
-Download the ClinPGx clinical-annotation TSVs and place them in `data/clinical_annotations/` using this naming convention:
+```text
+data/clinical_annotations/
+```
+
+using the naming convention:
 
 ```text
 GENE_pediatric-clinicalAnnotations-all-data.tsv
 GENE_nonPediatric-clinicalAnnotations-all-data.tsv
 ```
 
-Each TSV must contain: `Level`, `Variant`, `Gene`, `Drugs`, `Phenotype Categories`, `Phenotype`.
+The clinical-annotation files are expected to contain:
 
-## Run
+`Level`, `Variant`, `Gene`, `Drugs`, `Phenotype Categories`, and `Phenotype`.
+
+## Run the full workflow
+
+From the repository root:
 
 ```bash
 python run_pipeline.py
 ```
 
-Or start from downloaded clinical annotations:
+To start from a later step:
 
 ```bash
 python run_pipeline.py --from-step 3
 ```
 
-## Outputs
+Each numbered script can also be run independently.
 
-The five numbered outputs are written to `outputs/`. The Step-5 workbook contains `All VIP genes`, `Filtered alleles` (when a local selection file is supplied), and `Legend`.
+## Main outputs
 
-## Manual curation and privacy
+```text
+outputs/1_gene_table_clinpgx_extraction_april_2026.csv
+outputs/2_gene_table_clinpgx_extraction_april_2026.csv
+outputs/3_clinical_annotation_clinpgx_extraction_april_2026.xlsx
+outputs/4_combined_gene_clinical_annotations_april_2026.xlsx
+outputs/5_combined_with_allele_functionality_columns_april_2026.xlsx
+```
 
-The supplied April 2026 final workbook contains project-specific fields such as prior validation and custom/orthogonal panel inclusion. The cleaned pipeline supports those through local files in `data/curation/`, but all non-template curation CSVs are gitignored by default.
+## Project-specific review fields
 
-## Reproducibility / versioning
+Template Version 1 supports optional local curation files for fields such as prior validation, orthogonal/custom-panel inclusion, and the allele subset included in the `Filtered alleles` worksheet.
 
-ClinPGx and CPIC are living resources, so a future re-run may not reproduce the April 2026 values exactly. The deterministic Step-4 merge in this repository was checked against the supplied April workbook and reproduced it cell-for-cell (1,075 rows × 25 columns).
-
-The final manually curated workbook also contains 24 MT-RNR1 rows that are not generated by the uploaded original Step-5 left-join script; this is documented in `docs/VALIDATION_NOTES.md` rather than silently inferred into the public code.
+Only template CSVs are included in the public repository. Project-specific curation values are kept outside the public code repository.
 
 ## Data sources
 
 - ClinPGx: https://www.clinpgx.org/
 - CPIC: https://cpicpgx.org/
 
-## Citation / license
+ClinPGx and CPIC are maintained resources. A re-run at a later date may therefore retrieve updated source information.
 
-No software license has been assigned. The code is publicly viewable for manuscript transparency and reproducibility; reuse permissions should be confirmed with the project/institution.
+## Repository version
+
+**Template Version 1 — April 2026**
 
 ## Manuscript link
 
-Repository: `https://github.com/adrinephd/clinpgx-vip-gene-pipeline`
+https://github.com/adrinephd/clinpgx-vip-gene-pipeline
