@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.DS_Store
+
+# Generated outputs
+outputs/*
+!outputs/.gitkeep
+
+# Downloaded ClinPGx annotation files
+data/clinical_annotations/*.tsv
+!data/clinical_annotations/README.md
+
+# Local/manual curation may contain project-specific validation or panel information.
+data/curation/*.csv
+!data/curation/README.md
+!data/curation/*_template.csv
