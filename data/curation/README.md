@@ -1,8 +1,34 @@
-# Local curation files
+# Optional Template Version 1 curation files
 
-The cleaned pipeline makes supported edits explicit via optional local CSV files:
+Template Version 1 can incorporate project-review information that is not derived directly from ClinPGx or CPIC.
 
-- `allele_curation_april_2026.csv` — validation/custom-panel flags and narrowly scoped manual field overrides.
-- `filtered_alleles_selection_april_2026.csv` — the exact Gene/Variant selection used for the curated `Filtered alleles` sheet, plus the filtered-sheet orthogonal-panel flag.
+Two optional CSV inputs are supported.
 
-Both are gitignored by default because they may contain project-specific validation/panel information. Template files are tracked so the required schema is clear.
+## allele_curation_april_2026.csv
+
+One row per `Gene + Variant`.
+
+Supported fields include:
+
+- `Gene`
+- `Variant`
+- `Previously validated`
+- `Included in custom veridose panel`
+- `HGVS Representation override`
+
+The HGVS override field is optional and can be used when a project-specific representation should be retained in the final workbook.
+
+## filtered_alleles_selection_april_2026.csv
+
+Defines the allele subset included in the `Filtered alleles` worksheet.
+
+Supported fields include:
+
+- `Gene`
+- `Variant`
+- `Previously validated`
+- `DNALabs Orthogonal Panel`
+
+## Public repository behavior
+
+Blank template files are tracked in GitHub so the expected schema is visible. Filled project-specific curation files are ignored by Git.
